@@ -1,0 +1,155 @@
+<command:command xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10"
+                 xmlns:maml="http://schemas.microsoft.com/maml/2004/10"
+                 xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+  <command:details>
+    <command:name>Copy-FilesWithRobocopy</command:name>
+    <maml:description>
+      <maml:para>Copies files from a source directory to a destination directory using Robocopy.</maml:para>
+    </maml:description>
+    <maml:verb>Copy</maml:verb>
+    <maml:noun>FilesWithRobocopy</maml:noun>
+    <command:verb>Copy</command:verb>
+    <command:noun>FilesWithRobocopy</command:noun>
+  </command:details>
+  <command:syntax>
+    <command:syntaxItem>
+      <maml:name>Copy-FilesWithRobocopy</maml:name>
+      <command:parameter>
+        <maml:name>Source</maml:name>
+        <maml:description>
+          <maml:para>The source directory from which files will be copied.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false" />
+      </command:parameter>
+      <command:parameter>
+        <maml:name>Destination</maml:name>
+        <maml:description>
+          <maml:para>The destination directory to which files will be copied.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false" />
+      </command:parameter>
+      <command:parameter>
+        <maml:name>FilePattern</maml:name>
+        <maml:description>
+          <maml:para>The file pattern to match files that should be copied.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false" />
+      </command:parameter>
+      <command:parameter>
+        <maml:name>RetryCount</maml:name>
+        <maml:description>
+          <maml:para>The number of retries if a copy fails. Default is 2.</maml:para>
+        </maml:description>
+        <command:parameterValue required="false" variableLength="false" />
+        <dev:type>System.Int32</dev:type>
+        <dev:defaultValue>2</dev:defaultValue>
+      </command:parameter>
+      <command:parameter>
+        <maml:name>WaitTime</maml:name>
+        <maml:description>
+          <maml:para>The wait time between retries in seconds. Default is 5.</maml:para>
+        </maml:description>
+        <command:parameterValue required="false" variableLength="false" />
+        <dev:type>System.Int32</dev:type>
+        <dev:defaultValue>5</dev:defaultValue>
+      </command:parameter>
+      <command:parameter>
+        <maml:name>RequiredSpaceGB</maml:name>
+        <maml:description>
+          <maml:para>The required free space in gigabytes at the destination. Default is 10 GB.</maml:para>
+        </maml:description>
+        <command:parameterValue required="false" variableLength="false" />
+        <dev:type>System.Int32</dev:type>
+        <dev:defaultValue>10</dev:defaultValue>
+      </command:parameter>
+    </command:syntaxItem>
+  </command:syntax>
+  <command:parameters>
+    <command:parameter>
+      <maml:name>Source</maml:name>
+      <maml:description>
+        <maml:para>The source directory from which files will be copied.</maml:para>
+      </maml:description>
+      <command:parameterValue required="true" variableLength="false" />
+      <dev:type>System.String</dev:type>
+    </command:parameter>
+    <command:parameter>
+      <maml:name>Destination</maml:name>
+      <maml:description>
+        <maml:para>The destination directory to which files will be copied.</maml:para>
+      </maml:description>
+      <command:parameterValue required="true" variableLength="false" />
+      <dev:type>System.String</dev:type>
+    </command:parameter>
+    <command:parameter>
+      <maml:name>FilePattern</maml:name>
+      <maml:description>
+        <maml:para>The file pattern to match files that should be copied.</maml:para>
+      </maml:description>
+      <command:parameterValue required="true" variableLength="false" />
+      <dev:type>System.String</dev:type>
+    </command:parameter>
+    <command:parameter>
+      <maml:name>RetryCount</maml:name>
+      <maml:description>
+        <maml:para>The number of retries if a copy fails. Default is 2.</maml:para>
+      </maml:description>
+      <command:parameterValue required="false" variableLength="false" />
+      <dev:type>System.Int32</dev:type>
+      <dev:defaultValue>2</dev:defaultValue>
+    </command:parameter>
+    <command:parameter>
+      <maml:name>WaitTime</maml:name>
+      <maml:description>
+        <maml:para>The wait time between retries in seconds. Default is 5.</maml:para>
+      </maml:description>
+      <command:parameterValue required="false" variableLength="false" />
+      <dev:type>System.Int32</dev:type>
+      <dev:defaultValue>5</dev:defaultValue>
+    </command:parameter>
+    <command:parameter>
+      <maml:name>RequiredSpaceGB</maml:name>
+      <maml:description>
+        <maml:para>The required free space in gigabytes at the destination. Default is 10 GB.</maml:description>
+      <command:parameterValue required="false" variableLength="false" />
+      <dev:type>System.Int32</dev:type>
+      <dev:defaultValue>10</dev:defaultValue>
+    </command:parameter>
+  </command:parameters>
+  <command:examples>
+    <command:example>
+      <maml:title>Example 1</maml:title>
+      <maml:code>Copy-FilesWithRobocopy -Source "C:\Source" -Destination "C:\Destination" -FilePattern "*.txt"</maml:code>
+      <maml:remarks />
+      <maml:description>
+        <maml:para>Copies all .txt files from C:\Source to C:\Destination.</maml:para>
+      </maml:description>
+    </command:example>
+    <command:example>
+      <maml:title>Example 2</maml:title>
+      <maml:code>"*.txt", "*.log" | Copy-FilesWithRobocopy -Source "C:\Source" -Destination "C:\Destination"</maml:code>
+      <maml:remarks />
+      <maml:description>
+        <maml:para>Copies all .txt and .log files from C:\Source to C:\Destination using pipeline input for the file patterns.</maml:para>
+      </maml:description>
+    </command:example>
+  </command:examples>
+  <maml:relatedLinks>
+    <maml:navigationLink>
+      <maml:linkText>Check-DiskSpace</maml:linkText>
+      <maml:uri />
+    </maml:navigationLink>
+    <maml:navigationLink>
+      <maml:linkText>Handle-RobocopyExitCode</maml:linkText>
+      <maml:uri />
+    </maml:navigationLink>
+    <maml:navigationLink>
+      <maml:linkText>Test-Directory</maml:linkText>
+      <maml:uri />
+    </maml:navigationLink>
+    <maml:navigationLink>
+      <maml:linkText>Test-Robocopy</maml:linkText>
+      <maml:uri />
+    </maml:navigationLink>
+  </maml:relatedLinks>
+</command:command>
