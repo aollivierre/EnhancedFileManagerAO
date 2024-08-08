@@ -4,7 +4,7 @@ function Copy-FilesWithRobocopy {
     Copies files from a source directory to a destination directory using Robocopy.
 
     .DESCRIPTION
-    The Copy-FilesWithRobocopy function copies files from a source directory to a destination directory based on a specified file pattern. It uses Robocopy to perform the file copy operation. The function includes validation of the source and destination directories, disk space checks, and logs the Robocopy process.
+    The Copy-FilesWithRobocopy function copies files from a source directory to a destination directory based on a specified file pattern. It uses Robocopy to perform the file copy operation. The function includes validation of the source and destination directories, disk space checks, and logs the Robocopy process. It also handles locked files by finding and killing the locking processes.
 
     .PARAMETER Source
     The source directory from which files will be copied.
@@ -66,7 +66,7 @@ function Copy-FilesWithRobocopy {
     )
 
     begin {
-        Write-EnhancedLog -Message "Starting Copy-FilesWithRobocopy function" -Level "INFO"
+        Write-EnhancedLog -Message "Starting Copy-FilesWithRobocopy function" -Level "Notice"
         Log-Params -Params $PSCmdlet.MyInvocation.BoundParameters
 
         # Validate Robocopy, source and destination directories once
@@ -90,19 +90,19 @@ function Copy-FilesWithRobocopy {
         try {
             $robocopyPath = "C:\Windows\System32\Robocopy.exe"
             $robocopyArgs = @(
-                $Source, 
-                $Destination, 
-                $FilePattern, 
-                "/E", 
-                "/R:$RetryCount", 
+                "`"$Source`"",
+                "`"$Destination`"",
+                $FilePattern,
+                "/E",
+                "/R:$RetryCount",
                 "/W:$WaitTime",
-                "/LOG:$logFilePath"
+                "/LOG:`"$logFilePath`""
             )
 
             # Add exclude arguments if provided
             if ($Exclude) {
-                $excludeDirs = $Exclude | ForEach-Object { "/XD $_" }
-                $excludeFiles = $Exclude | ForEach-Object { "/XF $_" }
+                $excludeDirs = $Exclude | ForEach-Object { "/XD `"$($_)`"" }
+                $excludeFiles = $Exclude | ForEach-Object { "/XF `"$($_)`"" }
                 $robocopyArgs = $robocopyArgs + $excludeDirs + $excludeFiles
 
                 # Log what is being excluded
@@ -128,11 +128,42 @@ function Copy-FilesWithRobocopy {
         catch {
             Write-EnhancedLog -Message "An error occurred while copying files with Robocopy: $_" -Level "ERROR"
             Handle-Error -ErrorRecord $_
-            throw $_
+
+            # Check if the error is due to a file being used by another process
+            if ($_.Exception -match "because it is being used by another process") {
+                Write-EnhancedLog -Message "Attempting to find and kill the process locking the file." -Level "WARNING"
+                try {
+                    # Find the process locking the file
+                    $lockedFile = $_.Exception.Message -match "'(.+?)'" | Out-Null
+                    $lockedFile = $matches[1]
+
+                    # Kill the processes locking the file
+                    Kill-LockingProcesses -LockedFile $lockedFile
+
+                    # Retry the Robocopy operation
+                    $process = Start-Process @startProcessParams
+
+                    Handle-RobocopyExitCode -ExitCode $process.ExitCode
+                    Write-EnhancedLog -Message "Copy operation retried and succeeded." -Level "INFO"
+                }
+                catch {
+                    Write-EnhancedLog -Message "Failed to find or kill the process locking the file: $lockedFile" -Level "ERROR"
+                    Handle-Error -ErrorRecord $_
+                }
+            }
         }
     }
 
     end {
-        Write-EnhancedLog -Message "Copy-FilesWithRobocopy function execution completed." -Level "INFO"
+        Write-EnhancedLog -Message "Copy-FilesWithRobocopy function execution completed." -Level "Notice"
     }
 }
+
+# # Example usage
+# $params = @{
+#     Source      = "C:\Source"
+#     Destination = "C:\Destination"
+#     FilePattern = "*.txt"
+#     Exclude     = ".git"
+# }
+# Copy-FilesWithRobocopy @params

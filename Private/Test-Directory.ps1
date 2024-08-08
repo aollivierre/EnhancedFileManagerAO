@@ -6,7 +6,7 @@ function Test-Directory {
     )
 
     begin {
-        Write-EnhancedLog -Message "Starting Test-Directory function" -Level "INFO"
+        Write-EnhancedLog -Message "Starting Test-Directory function" -Level "Notice"
         Log-Params -Params $PSCmdlet.MyInvocation.BoundParameters
     }
 
@@ -26,6 +26,6 @@ function Test-Directory {
     }
 
     end {
-        Write-EnhancedLog -Message "Test-Directory function execution completed." -Level "INFO"
+        Write-EnhancedLog -Message "Test-Directory function execution completed." -Level "Notice"
     }
 }

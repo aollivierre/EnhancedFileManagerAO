@@ -9,7 +9,7 @@ function Verify-CopyOperation {
     )
 
     begin {
-        Write-EnhancedLog -Message "Verifying copy operation..." -Level "INFO"
+        Write-EnhancedLog -Message "Verifying copy operation..." -Level "Notice"
         Log-Params -Params @{
             SourcePath = $SourcePath
             DestinationPath = $DestinationPath
@@ -67,7 +67,7 @@ function Verify-CopyOperation {
             $verificationResults | Out-GridView
         }
         else {
-            Write-EnhancedLog -Message "All items verified successfully. No discrepancies found." -Level "INFO"
+            Write-EnhancedLog -Message "All items verified successfully. No discrepancies found." -Level "Notice"
         }
 
         Write-EnhancedLog -Message ("Total items in source: " + $sourceItems.Count) -Level "INFO"

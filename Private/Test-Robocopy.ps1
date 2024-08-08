@@ -7,7 +7,7 @@ function Test-Robocopy {
     )
 
     begin {
-        Write-EnhancedLog -Message "Starting Test-Robocopy function" -Level "INFO"
+        Write-EnhancedLog -Message "Starting Test-Robocopy function" -Level "Notice"
         Log-Params -Params $PSCmdlet.MyInvocation.BoundParameters
     }
 
@@ -29,6 +29,6 @@ function Test-Robocopy {
     }
 
     end {
-        Write-EnhancedLog -Message "Test-Robocopy function execution completed." -Level "INFO"
+        Write-EnhancedLog -Message "Test-Robocopy function execution completed." -Level "Notice"
     }
 }

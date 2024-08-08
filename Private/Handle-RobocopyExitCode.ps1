@@ -28,7 +28,7 @@ function Handle-RobocopyExitCode {
     )
 
     begin {
-        Write-EnhancedLog -Message "Starting Handle-RobocopyExitCode function" -Level "INFO"
+        Write-EnhancedLog -Message "Starting Handle-RobocopyExitCode function" -Level "Notice"
         Log-Params -Params $PSCmdlet.MyInvocation.BoundParameters
     }
 
@@ -55,6 +55,6 @@ function Handle-RobocopyExitCode {
     }
 
     end {
-        Write-EnhancedLog -Message "Handle-RobocopyExitCode function execution completed." -Level "INFO"
+        Write-EnhancedLog -Message "Handle-RobocopyExitCode function execution completed." -Level "Notice"
     }
 }

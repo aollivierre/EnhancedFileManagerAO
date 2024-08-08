@@ -8,7 +8,7 @@ function Check-DiskSpace {
     )
 
     begin {
-        Write-EnhancedLog -Message "Starting Check-DiskSpace function" -Level "INFO"
+        Write-EnhancedLog -Message "Starting Check-DiskSpace function" -Level "Notice"
         Log-Params -Params $PSCmdlet.MyInvocation.BoundParameters
     }
 
@@ -29,6 +29,6 @@ function Check-DiskSpace {
     }
 
     end {
-        Write-EnhancedLog -Message "Check-DiskSpace function execution completed." -Level "INFO"
+        Write-EnhancedLog -Message "Check-DiskSpace function execution completed." -Level "Notice"
     }
 }
