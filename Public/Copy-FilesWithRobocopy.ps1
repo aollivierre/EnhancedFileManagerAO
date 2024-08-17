@@ -1,10 +1,10 @@
 function Copy-FilesWithRobocopy {
     <#
     .SYNOPSIS
-    Copies files from a source directory to a destination directory using Robocopy.
+    Copies files from a source directory to a destination directory using Robocopy and verifies the operation.
 
     .DESCRIPTION
-    The Copy-FilesWithRobocopy function copies files from a source directory to a destination directory based on a specified file pattern. It uses Robocopy to perform the file copy operation. The function includes validation of the source and destination directories, disk space checks, and logs the Robocopy process. It also handles locked files by finding and killing the locking processes.
+    The Copy-FilesWithRobocopy function copies files from a source directory to a destination directory based on a specified file pattern using Robocopy. It validates the source and destination directories, checks disk space, logs the Robocopy process, and verifies the copy operation. It also handles locked files by finding and killing the locking processes.
 
     .PARAMETER Source
     The source directory from which files will be copied.
@@ -13,7 +13,7 @@ function Copy-FilesWithRobocopy {
     The destination directory to which files will be copied.
 
     .PARAMETER FilePattern
-    The file pattern to match files that should be copied.
+    The file pattern to match files that should be copied. If not provided, defaults to '*'.
 
     .PARAMETER RetryCount
     The number of retries if a copy fails. Default is 2.
@@ -45,6 +45,7 @@ function Copy-FilesWithRobocopy {
     - Handle-RobocopyExitCode.ps1
     - Test-Directory.ps1
     - Test-Robocopy.ps1
+    - Verify-CopyOperation.ps1
     #>
 
     [CmdletBinding()]
@@ -54,7 +55,7 @@ function Copy-FilesWithRobocopy {
         [Parameter(Mandatory = $true)]
         [string]$Destination,
         [Parameter(Mandatory = $false, ValueFromPipeline = $true)]
-        [string]$FilePattern,
+        [string]$FilePattern = '*',  # Default to '*' if not provided
         [Parameter(Mandatory = $false)]
         [int]$RetryCount = 2,
         [Parameter(Mandatory = $false)]
@@ -69,16 +70,30 @@ function Copy-FilesWithRobocopy {
         Write-EnhancedLog -Message "Starting Copy-FilesWithRobocopy function" -Level "Notice"
         Log-Params -Params $PSCmdlet.MyInvocation.BoundParameters
 
-        # Validate Robocopy, source and destination directories once
-        Test-Robocopy
-        Test-Directory -Path $Source
-        Write-EnhancedLog -Message "Validated source directory: $Source" -Level "INFO"
+        # Validate Robocopy, source, and destination directories
+        try {
+            Test-Robocopy
+            Test-Directory -Path $Source
+            Write-EnhancedLog -Message "Validated source directory: $Source" -Level "INFO"
 
-        Test-Directory -Path $Destination
-        Write-EnhancedLog -Message "Validated destination directory: $Destination" -Level "INFO"
+            Test-Directory -Path $Destination
+            Write-EnhancedLog -Message "Validated destination directory: $Destination" -Level "INFO"
+        }
+        catch {
+            Write-EnhancedLog -Message "Critical error during validation of source or destination directories or Robocopy validation." -Level "CRITICAL"
+            Handle-Error -ErrorRecord $_
+            throw $_
+        }
 
-        # Check disk space once
-        Check-DiskSpace -Path $Destination -RequiredSpaceGB $RequiredSpaceGB
+        # Check disk space
+        try {
+            Check-DiskSpace -Path $Destination -RequiredSpaceGB $RequiredSpaceGB
+        }
+        catch {
+            Write-EnhancedLog -Message "Critical error during disk space validation." -Level "CRITICAL"
+            Handle-Error -ErrorRecord $_
+            throw $_
+        }
 
         # Prepare Robocopy log file path
         $timestamp = Get-Date -Format "yyyyMMddHHmmss"
@@ -112,6 +127,7 @@ function Copy-FilesWithRobocopy {
             }
 
             Write-EnhancedLog -Message "Starting Robocopy process with arguments: $robocopyArgs" -Level "INFO"
+
             # Splatting Start-Process parameters
             $startProcessParams = @{
                 FilePath     = $robocopyPath
@@ -122,6 +138,10 @@ function Copy-FilesWithRobocopy {
             }
 
             $process = Start-Process @startProcessParams
+
+            if ($process.ExitCode -ne 0) {
+                Write-EnhancedLog -Message "Robocopy process failed with exit code: $($process.ExitCode)" -Level "CRITICAL"
+            }
 
             Handle-RobocopyExitCode -ExitCode $process.ExitCode
         }
@@ -141,7 +161,12 @@ function Copy-FilesWithRobocopy {
                     Kill-LockingProcesses -LockedFile $lockedFile
 
                     # Retry the Robocopy operation
+                    Write-EnhancedLog -Message "Retrying Robocopy operation after killing the locking process." -Level "INFO"
                     $process = Start-Process @startProcessParams
+
+                    if ($process.ExitCode -ne 0) {
+                        Write-EnhancedLog -Message "Robocopy process failed again with exit code: $($process.ExitCode)" -Level "CRITICAL"
+                    }
 
                     Handle-RobocopyExitCode -ExitCode $process.ExitCode
                     Write-EnhancedLog -Message "Copy operation retried and succeeded." -Level "INFO"
@@ -149,21 +174,27 @@ function Copy-FilesWithRobocopy {
                 catch {
                     Write-EnhancedLog -Message "Failed to find or kill the process locking the file: $lockedFile" -Level "ERROR"
                     Handle-Error -ErrorRecord $_
+                    throw $_
                 }
+            }
+            else {
+                throw $_
             }
         }
     }
 
     end {
+        Write-EnhancedLog -Message "Verifying copied files..." -Level "Notice"
+
+        # Call Verify-CopyOperation to ensure the files were copied correctly
+        Verify-CopyOperation -SourcePath $Source -DestinationPath $Destination
+
         Write-EnhancedLog -Message "Copy-FilesWithRobocopy function execution completed." -Level "Notice"
     }
 }
 
 # # Example usage
-# $params = @{
-#     Source      = "C:\Source"
-#     Destination = "C:\Destination"
-#     FilePattern = "*.txt"
-#     Exclude     = ".git"
-# }
-# Copy-FilesWithRobocopy @params
+# $sourcePath = "C:\Source"
+# $destinationPath = "C:\Destination"
+
+# Copy-FilesWithRobocopy -Source $sourcePath -Destination $destinationPath
