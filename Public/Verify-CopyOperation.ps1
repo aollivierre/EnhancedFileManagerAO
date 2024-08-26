@@ -108,7 +108,7 @@ function Verify-CopyOperation {
             }
 
             # Uncomment when troubleshooting
-            $verificationResults | Out-GridView
+            # $verificationResults | Out-GridView
         }
         else {
             Write-EnhancedLog -Message "All items verified successfully. No discrepancies found." -Level "Notice"
