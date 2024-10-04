@@ -154,8 +154,12 @@ function Copy-FilesWithRobocopy {
                 Write-EnhancedLog -Message "Attempting to find and kill the process locking the file." -Level "WARNING"
                 try {
                     # Find the process locking the file
-                    $lockedFile = $_.Exception.Message -match "'(.+?)'" | Out-Null
-                    $lockedFile = $matches[1]
+                    # $lockedFile = $_.Exception.Message -match "'(.+?)'" | Out-Null
+                    # $lockedFile = $matches[1]
+
+
+                    $lockingProcesses = Get-LockingProcess -FilePath $LockedFile -HandlePath "C:\ProgramData\SystemTools\handle64.exe"
+                    $lockedfile = $lockingProcesses.FilePath
 
                     # Kill the processes locking the file
                     Kill-LockingProcesses -LockedFile $lockedFile

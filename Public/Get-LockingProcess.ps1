@@ -1,4 +1,3 @@
-
 function Get-LockingProcess {
     [CmdletBinding()]
     param (
@@ -32,19 +31,29 @@ function Get-LockingProcess {
     Process {
         try {
             Write-EnhancedLog -Message "Identifying processes locking file: $FilePath using Handle" -Level "INFO"
-            $handleOutput = &"$HandlePath" $FilePath 2>&1
+    
+            # Run Handle and suppress copyright and EULA lines
+            $handleOutput = &"$HandlePath" $FilePath 2>&1 | Where-Object {
+                $_ -notmatch "Sysinternals|Copyright|Handle viewer|EULA" -and $_.Trim() -ne ""
+            }
             $processes = @()
-
+    
             if ($handleOutput) {
                 Write-EnhancedLog -Message "Processing output from Handle" -Level "INFO"
+    
+                # Refine the parsing logic to ignore invalid lines
                 foreach ($line in $handleOutput) {
-                    if ($line -match 'pid:\s*(\d+)\s*type:\s*\w+\s*([^\s]+)\s*') {
-                        $processId = $matches[1]
-                        $processName = $matches[2]
+                    if ($line -match '^\s*([^\s]+)\s+pid:\s*(\d+)\s+type:\s*\w+\s*(.*)$') {
+                        $processName = $matches[1]
+                        $processId = $matches[2]
+    
+                        # Add to the processes array
                         $processes += [PSCustomObject]@{
                             ProcessId   = $processId
                             ProcessName = $processName
+                            FilePath    = $FilePath
                         }
+    
                         Write-EnhancedLog -Message "Found locking process: ID = $processId, Name = $processName" -Level "INFO"
                     }
                 }
@@ -52,7 +61,7 @@ function Get-LockingProcess {
             else {
                 Write-EnhancedLog -Message "No output received from Handle. No locking processes found for file: $FilePath" -Level "WARNING"
             }
-
+    
             return $processes
         }
         catch {
@@ -61,6 +70,8 @@ function Get-LockingProcess {
             throw $_
         }
     }
+    
+    
 
     End {
         Write-EnhancedLog -Message "Exiting Get-LockingProcess function" -Level "Notice"
