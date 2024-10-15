@@ -24,18 +24,18 @@ Process {
     $PrivateFunctions = @(Get-ChildItem -Path $privateDir -Filter "*.ps1" -ErrorAction SilentlyContinue)
 
     # Verbose logging of function files found
-    Write-Host "Public Functions found: $($PublicFunctions.Count)"
-    Write-Host "Private Functions found: $($PrivateFunctions.Count)"
+    Write-EnhancedLog -Message "Public Functions found: $($PublicFunctions.Count)"
+    Write-EnhancedLog -Message "Private Functions found: $($PrivateFunctions.Count)"
 
     # Inform if no function files are found to dot-source
     if ($PublicFunctions.Count -eq 0 -and $PrivateFunctions.Count -eq 0) {
-        Write-Host "No function files found to dot-source in either Public or Private directories."
+        Write-EnhancedLog -Message "No function files found to dot-source in either Public or Private directories."
     }
     else {
         # Dot-source the function files
         foreach ($FunctionFile in @($PublicFunctions + $PrivateFunctions)) {
             try {
-                Write-Host "Dot-sourcing: $($FunctionFile.FullName)"
+                Write-EnhancedLog -Message "Dot-sourcing: $($FunctionFile.FullName)" -Level INFO
                 . $FunctionFile.FullName
             }
             catch {
@@ -47,10 +47,10 @@ Process {
     # Export functions defined in the Public directory
     $functionNamesToExport = $PublicFunctions | ForEach-Object { $_.BaseName }
     if ($functionNamesToExport) {
-        Write-Host "Exporting public functions which you can call in your script: $($functionNamesToExport -join ', ')"
+        Write-EnhancedLog -Message "Exporting public functions which you can call in your script: $($functionNamesToExport -join ', ')"
         Export-ModuleMember -Function $functionNamesToExport -Alias *
     }
     else {
-        Write-Host "No public functions to export. Move functions to Public folder if you want them to be available and called in your scripts"
+        Write-EnhancedLog -Message "No public functions to export. Move functions to Public folder if you want them to be available and called in your scripts"
     }
 }
